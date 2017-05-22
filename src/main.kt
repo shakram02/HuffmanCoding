@@ -1,6 +1,5 @@
 import java.io.File
 import java.io.FileReader
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.security.InvalidParameterException
 import java.util.*
@@ -14,6 +13,7 @@ fun main(args: Array<String>): Unit {
     val pwd = System.getProperty("user.dir")
     var file = Paths.get(pwd, "freq.txt").toString()
     var fileContent = ArrayList<List<String>>()
+    val test_string = "test string"
 
     if (!args.isEmpty()) {
         file = args[0]
@@ -33,14 +33,15 @@ fun main(args: Array<String>): Unit {
 
     val map = HashMap<Char, Double>()
 
-    for (entry in fileContent) {
-        val letter = entry[0].toCharArray()[0]
-        val freq = entry[1].toDouble() * 100
-        map.put(letter, freq)
-    }
+    fileContent
+            .map { it.toHuffChar() }
+            .forEach { map.put(it.content!!, it.frequency) }
 
     val huffMap = huffCode(map)
     println(huffMap.toString())
+
+    println("The encoding of \"$test_string\" is" +
+            " ${huffEncode(test_string, huffMap)}")
 }
 
 /**
@@ -140,3 +141,8 @@ fun Int.asStringPercentage(str: String): Double {
     return percent * 100
 }
 
+fun List<String>.toHuffChar(): HuffChar {
+    val letter = this[0].toLowerCase().toCharArray()[0]
+    val freq = this[1].toDouble() * 100.0
+    return HuffChar(letter, freq)
+}
