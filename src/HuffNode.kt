@@ -4,7 +4,7 @@ class HuffNode(var huffChar: HuffChar,
         return this.huffChar.compareTo(other.huffChar)
     }
 
-    fun getFrequency(): Int {
+    fun getFrequency(): Double {
         return this.huffChar.frequency
     }
 
@@ -29,8 +29,7 @@ fun HuffNode.getCodes(oldCode: StringBuilder): List<Pair<Char, String>> {
     }
 
     // When moving from a left child to a right child,
-    // reset the code to remove the codes
-    // added in the lower subtree
+    // reset the code to remove the codes added in the lower subtrees
 
     oldCode.setLength(0)    // Clear the string builder
     oldCode.append(parentCode)
