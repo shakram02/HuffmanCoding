@@ -1,43 +1,42 @@
 import java.io.File
 import java.io.FileReader
 import java.nio.file.Paths
-import java.security.InvalidParameterException
-import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 /**
- * Created by ahmed on 5/20/17.
+ * Converts a given input string and file of frequencies
+ * to the equivalent huffman encoding
  */
 fun main(args: Array<String>): Unit {
-    val pwd = System.getProperty("user.dir")
-    var file = Paths.get(pwd, "freq.txt").toString()
-    var fileContent = ArrayList<List<String>>()
     val test_string = "test string"
+    val pwd = System.getProperty("user.dir")
+
+    var file = Paths.get(pwd, "freq.txt").toString()
+    var fileContent = ArrayList<String>()
+    var frequencyMap = HashMap<Char, Double>()
 
     if (!args.isEmpty()) {
         file = args[0]
-    } else if (File(file).exists()) {
-
-    } else {
-        // Dummy input entries
-        val arr = arrayListOf("a", "b", "c", "d", "e", "f")
-        val freq = arrayListOf("0.05", "0.09", "0.12", "0.13", "0.16", "0.45")
-        (0..arr.size - 1).mapTo(fileContent) { listOf(arr[it], freq[it]) }
     }
 
-    val fileReader = FileReader(file)
+    if (File(file).exists()) {
 
-    fileContent = fileReader.readLines()
-            .map { it -> it.split(" ").toList() } as ArrayList
+        val fileReader = FileReader(file)
+        fileContent = fileReader.readLines() as ArrayList
 
-    val map = HashMap<Char, Double>()
+    } else {
 
-    fileContent
-            .map { it.toHuffChar() }
-            .forEach { map.put(it.content!!, it.frequency) }
+        // Dummy frequency file
+        fileContent = arrayListOf("a 0.05", "b 0.09", "c 0.12",
+                "d 0.13", "e 0.16", "f 0.45")
 
-    val huffMap = huffCode(map)
+    }
+
+    frequencyMap = parseFreqFile(fileContent.toList())
+
+    // val huffMap = huffCode(test_string)  // Use with string input
+    val huffMap = huffCode(frequencyMap) // Use with frequency file input
     println(huffMap.toString())
 
     println("The encoding of \"$test_string\" is" +
@@ -64,55 +63,15 @@ fun huffCode(weights: HashMap<Char, Double>): HashMap<Char, String> {
 }
 
 /**
- * Builds the Huffman tree
- */
-fun Collection<HuffChar>.getHuffTree(): HuffNode {
-    if (size == 0) {
-        throw InvalidParameterException()
-    }
-
-    val pQueue = PriorityQueue<HuffNode>(this.size)
-    pQueue.addAll(this.map { HuffNode(it, null, null) })
-
-    while (pQueue.size > 1) {
-        val first = pQueue.remove()
-        val second = pQueue.remove()
-
-        val newFreq = first.getFrequency() + second.getFrequency()
-        val newNode = HuffNode(HuffChar(newFreq), first, second)
-
-        pQueue.add(newNode)
-    }
-
-    return pQueue.remove()
-}
-
-fun HashMap<Char, Double>.huffListFromMap(): Collection<HuffChar> {
-    val nodes = mutableListOf<HuffChar>()
-    this.map { HuffChar(it.key, it.value) }
-            .toCollection(nodes)
-
-    return nodes
-}
-
-
-/**
  * Alternative function to calculate Huffman coding
  * for a given string
  */
-fun huffCode(str: String): HuffNode {
-
-    val list: Collection<HuffChar> = str
-            .getCharFrequencies()
-            .huffListFromMap()
-
-    return list.getHuffTree()
+fun huffCode(str: String): HashMap<Char, String> {
+    return huffCode(str.getCharFrequencies())
 }
 
 /**
  * Calculates the frequencies of the characters
- * Note: The sum of frequencies will mostly exceed
- * 100 because of the rounding
  */
 fun String.getCharFrequencies(): HashMap<Char, Double> {
     val chars = this.toCharArray()
@@ -133,16 +92,3 @@ fun String.getCharFrequencies(): HashMap<Char, Double> {
     return result
 }
 
-/**
- * Percentage of the number of occurrences in a string
- */
-fun Int.asStringPercentage(str: String): Double {
-    val percent = (this.toDouble()).div(str.length)
-    return percent * 100
-}
-
-fun List<String>.toHuffChar(): HuffChar {
-    val letter = this[0].toLowerCase().toCharArray()[0]
-    val freq = this[1].toDouble() * 100.0
-    return HuffChar(letter, freq)
-}
